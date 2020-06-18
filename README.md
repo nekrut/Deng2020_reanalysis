@@ -49,9 +49,29 @@ To obtain coordinates of MSSPE primers we mapped primer sequences (obtained from
 We called variants using the same procedure as described [here](https://covid19.galaxyproject.org/genomics/4-Variation/). We did not deduplicated BAM files as these are ampliconic data. Briefly we used [`lofreq`](https://github.com/CSB5/lofreq) to:
 
 - realign the reads (`lofreq vitebi`)
-- insert indel qualities ('lofreq indelqual --dindel')
-- call variants ('lofreq call')
+- insert indel qualities (`lofreq indelqual --dindel`)
+- call variants (`lofreq call`)
 
-The resulting list of variants is [here](variants.tsv).
+The resulting list of variants is [here](variants.tsv)
+
+### Analysis
+
+#### US Grand Princess (USGP) cruise ship
+
+The authors state that all 11 genomes from USGP are a part of the WA1 lineage. This means that they contain `C8782T`, `C18060T`, and `T28144C` substitutions defining this lineage as well as `C17747T` ans `A17858G`. In addition six passengers of the voyage A carried `G16975T` and `C23185T`. 
+
+The trouble starts with the fact that Fig. 3 of the manuscript lists UC7 - UC11 as Voyage **B** passengers, while text lists then as **A**.  However, let us assume for the a moment that UCs 1,5,6,7,8,9,10,11,19,20,30 are simply "cruise ship" samples. Do we see the described substitutions?
+
+The following figure shows distribution of substitutions with alternative allele frequencies over 90% across the genome:
+
+![](usgp_changes.png)
+
+only `T28144C` is universal, while others are distributed seemingly randomly. The substitutions `C17747T` ans `A17858G` defining USGP lineage are present in *almost* all samples with the exception of `UC8` and `UC30`:
+
+![](usgp_2sub.png)
+
+The `A17858G` is not called in UC08 because of the extreme strand bias:
+
+![](A17858G_U08.png)
 
 
