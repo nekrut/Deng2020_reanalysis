@@ -10,7 +10,7 @@ The paper states that the authors analyzed 36 infected patents. The correspondin
 
 |    | study_accession   | experiment_accession   | experiment_title                                | experiment_desc                                 |   organism_taxid  | organism_name                                   | library_strategy   | library_source   | library_selection   | sample_accession   |   sample_title | instrument            |   total_spots |   total_size | run_accession   |   run_total_spots |   run_total_bases | run_alias     | sra_url_alt1                                                              | sra_url_alt2                                                              | sra_url                                                                   |   experiment_alias |   Titer (Ct value) | Sequencing Platform   |   Distinguishing Info | strain         | isolate        | collected_by                           | collection_date   | geo_loc_name   | host         | host_disease   | isolation_source   | lat_lon              | BioSampleModel   | sra_url_alt                                                                             | ena_fastq_url                                                                   | ena_fastq_ftp                                                                      |
 |---:|:------------------|:-----------------------|:------------------------------------------------|:------------------------------------------------|------------------:|:------------------------------------------------|:-------------------|:-----------------|:--------------------|:-------------------|---------------:|:----------------------|--------------:|-------------:|:----------------|------------------:|------------------:|:--------------|:--------------------------------------------------------------------------|:--------------------------------------------------------------------------|:--------------------------------------------------------------------------|-------------------:|-------------------:|:----------------------|----------------------:|:---------------|:---------------|:---------------------------------------|:------------------|:---------------|:-------------|:---------------|:-------------------|:---------------------|:-----------------|:----------------------------------------------------------------------------------------|:--------------------------------------------------------------------------------|:-----------------------------------------------------------------------------------|
-|  0 | SRP265005         | SRX8409213             | Severe acute respiratory syndrome coronavirus 2 | Severe acute respiratory syndrome coronavirus 2 |           2697049 | Severe acute respiratory syndrome coronavirus 2 | AMPLICON           | METAGENOMIC      | PCR                 | SRS6721570         |            nan | Illumina HiSeq 1500   |         13478 |      1016143 | SRR11859166     |             13478 |           1886920 | UC13.fastq.gz | https://storage.googleapis.com/sra-pub-src-9/SRR11859166/UC13.fastq.gz.1  | https://sra-pub-src-9.s3.amazonaws.com/SRR11859166/UC13.fastq.gz.1        | https://sra-download.ncbi.nlm.nih.gov/traces/sra74/SRR/011581/SRR11859166 |                nan |               27.5 | HiSeq                 |                    13 | Not applicable | Not applicable | University of Califronia San Francisco | 2020-03-02        | USA:California | Homo sapiens | Acue infection | clinical sample    | 36.7783 N 119.4179 W | Pathogen.cl      | nan                                                                                     | nan                                                                             | nan                                                                                |
+|  0 | SRP265005         | SRX8409213             | Severe acute respiratory syndrome coronavirus 2 | Severe acute respiratory syndrome coronavirus 2 |           2697049 | Severe acute respiratory syndrome coronavirus 2 | AMPLICON           | METAGENOMIC      | PCR                 | SRS6721570         |            nan | Illumina HiSeq 1500   |         13478 |      1016143 | SRR11859166     |             13478 |           1886920 | UC13.fastq.gz | https://storage.googleapis.com/sra-pub-src-9/SRR11859166/UC13.fastq.gz.1  | https://sra-pub-src-9.s3.amazonaws.com/SRR11859166/UC13.fastq.gz.1        | https://sra-download.ncbi.nlm.nih.gov/traces/sra74/SRR/011581/SRR11859166 | nan | 27.5 | HiSeq | 13 | Not applicable | Not applicable | University of Califronia San Francisco | 2020-03-02 | USA:California | Homo sapiens | Acue infection | clinical sample    | 36.7783 N 119.4179 W | Pathogen.cl      | nan| nan | nan |
 
 One can see that many useful columns are either empty (e.g., `sample_title`) or do not contain useful information (e.g., `geo_loc_name`). This is unfortunate as their supplemental Table S1 contains Sample Lab IDs and it is impossible to figure out which is which. In addition, Table S1 lists 66 samples. So there is a discrepancy: 36 patients, 44 SRA datasets, and 66 samples.
 
@@ -18,6 +18,40 @@ Downloading data resulted in 25 single end and 18 paired end datasets. We perfor
 
 ![](fastp_qc.png)
 
+There is substantial duplication levels expected from amplicon sequencing.  
 
+## Processing ampliconic data
+
+The paper used a combination of [PrimalSeq](https://genomebiology.biomedcentral.com/articles/10.1186/s13059-018-1618-7) and [MSSPE](https://pubmed.ncbi.nlm.nih.gov/31932713/) approaches. It is not easy to obtain information on which samples were processed with MSSPE or PrimalSeq schemes based on SRA metadata. It is interesting that such data appears when looking at individual SRR accession:
+
+![](sra_web.png)
+
+but is absent is one obtains metadata either from SRA website or programatically via API:
+
+```
+Run,ReleaseDate,LoadDate,spots,bases,spots_with_mates,avgLength,size_MB,AssemblyName,download_path,Experiment,LibraryName,LibraryStrategy,LibrarySelection,LibrarySource,LibraryLayout,InsertSize,InsertDev,Platform,Model,SRAStudy,BioProject,Study_Pubmed_id,ProjectID,Sample,BioSample,SampleType,TaxID,ScientificName,SampleName,g1k_pop_code,source,g1k_analysis_group,Subject_ID,Sex,Disease,Tumor,Affection_Status,Analyte_Type,Histological_Type,Body_Site,CenterName,Submission,dbgap_study_accession,Consent,RunHash,ReadHash
+SRR11859129,2020-05-27 19:18:31,2020-05-27 19:15:05,8544351,1196209140,0,140,471,,https://sra-download.ncbi.nlm.nih.gov/traces/sra13/SRR/011581/SRR11859129,SRX8409250,UC9,AMPLICON,PCR,METAGENOMIC,SINGLE,0,0,ILLUMINA,NextSeq 550,SRP265005,PRJNA629889,,629889,SRS6721607,SAMN14814520,simple,2697049,Severe acute respiratory syndrome coronavirus 2,UC9,,,,,,,no,,,,,UNIVERSITY OF CALIFORNIA SAN FRANCISCO,SRA1080605,,public,825111F66EB84365F13645E3B72D7E51,32C9A5C7D306B056894F947B39681331
+```
+
+The paper lists Tiling multiplex PCR primers (Supplemental Table 4) but does not specify which version of ARTIC set they correspond to. We use text matching to figure out that Supplemental Table 4 is identical to [V1](https://github.com/artic-network/artic-ncov2019/tree/master/primer_schemes/nCoV-2019/V1) of ARTIC SARS-CoV2 primer set. To process data we:
+
+- mapped all 43 datasets against SARS-CoV2 genome ([NC_045512.2](https://www.ncbi.nlm.nih.gov/nuccore/NC_045512))
+- processed resulting BAM files with `ivar trim` using `-e` option that retains reads with no primers detected using ARTIC V1 [primer coordinates](https://raw.githubusercontent.com/artic-network/artic-ncov2019/master/primer_schemes/nCoV-2019/V1/nCoV-2019.bed) 
+- processed output of the previous step with `ivar trim` using `-e` option using bed file containing coordinates of MSSPE primer set
+- for paired-end data we retained only reads mapped in the proper orientation (`---> <---`).
+
+To obtain coordinates of MSSPE primers we mapped primer sequences (obtained from Supplemental Table 3) against [NC_045512.2](https://www.ncbi.nlm.nih.gov/nuccore/NC_045512) and converted resulting BAM file into BED file using `BEDTools`
+
+## Calling and analyzing variants
+
+### Calling variants
+
+We called variants using the same procedure as described [here](https://covid19.galaxyproject.org/genomics/4-Variation/). We did not deduplicated BAM files as these are ampliconic data. Briefly we used [`lofreq`](https://github.com/CSB5/lofreq) to:
+
+- realign the reads (`lofreq vitebi`)
+- insert indel qualities ('lofreq indelqual --dindel')
+- call variants ('lofreq call')
+
+The resulting list of variants is [here](variants.tsv).
 
 
