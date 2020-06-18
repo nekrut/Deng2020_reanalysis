@@ -14,7 +14,10 @@ The paper states that the authors analyzed 36 infected patents. The correspondin
 
 One can see that many useful columns are either empty (e.g., `sample_title`) or do not contain useful information (e.g., `geo_loc_name`). This is unfortunate as their supplemental Table S1 contains Sample Lab IDs and it is impossible to figure out which is which. In addition, Table S1 lists 66 samples. So there is a discrepancy: 36 patients, 44 SRA datasets, and 66 samples.
 
-Downloading data resulted in 25 single end and 18 paired end datasets. We performed initial QC using [`fastp`](https://github.com/OpenGene/fastp), which showed that many datasets had substantial adapter contamination:
+Downloading data resulted in 25 single end and 18 paired end datasets. We performed initial QC using [`fastp`](https://github.com/OpenGene/fastp), to remove low quality reads as well as to detect and trim Illumina adapter sequences:
+
+![](fastp_qc.png)
+
 
 
 
