@@ -74,4 +74,17 @@ The `A17858G` is not called in UC08 because of the extreme strand bias:
 
 ![](A17858G_U08.png)
 
+It also happens to be a widely distributed substitution based on GISAID data as shown by the analysis performed by [Sergei Kosakovsky-Pond](https://observablehq.com/@spond/distribution-of-sars-cov-2-sequences-that-have-a-particular):
 
+![](17858_distr.png)
+
+#### Santa Clara Country (SCC)
+
+The situation is considerably less clear with Santa Clara County (SSC data). Out of 10 samples (`"SantaClara":["UC13","UC15","UC14","UC16","UC17","UC34","UC35","UC18","UC25","UC21"]`) only five have **any** changes with alternative allele frequency above 90%:
+
+![](ssc_changes.png)
+
+Moreover only two samples share `G29711T` non-coding substituion, which according to the paper defined SSC clade. Again, let's look at the reads:
+
+
+IN PROGRESS ...
